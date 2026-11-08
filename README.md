@@ -2,6 +2,8 @@
 
 A simple WinUI 3 app for presenting live-coding talks from a Markdown script, shown on a secondary monitor the audience doesn't see.
 
+https://github.com/user-attachments/assets/57b3cd97-78f5-478b-a329-4e1ebb44ef7c
+
 - **Edit mode**: a Markdown editor with a side-by-side live preview.
 - **Presenter mode** (F5): only the rendered script, with the current section highlighted and centered.
 - **Click-to-copy snippets**: click anywhere on a fenced code block to copy it.
@@ -36,6 +38,8 @@ dotnet new console
 
 @30:00
 ````
+
+For a complete example, see [docs/sample-talk.md](docs/sample-talk.md). It's the script used in the showreel.
 
 ## Build and run
 

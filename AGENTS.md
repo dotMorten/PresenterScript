@@ -35,6 +35,7 @@ The user-facing syntax reference is `src\PresenterScript\HelpWindow.xaml`. **Kee
 AGENTS.md, README.md, LICENSE   Repo docs (MIT)
 PresenterScript.slnx            Solution (ARM64/x64/x86 only)
 global.json                     SDK pin
+docs/sample-talk.md             Complete example script (used in the README showreel; keep it working)
 src/PresenterScript/
   App.xaml(.cs)                 Startup; unhandled exceptions are appended to LocalState\crash.log
   MainWindow.xaml(.cs)          Hosts MainPage; PersistenceId "MainWindow"; OnClosing -> ViewModel.PersistScratch()
@@ -100,6 +101,7 @@ dotnet build src\PresenterScript\PresenterScript.csproj -p:Platform=ARM64 -p:Bas
 - The WinUI `TextBox` uses bare `\r` newlines. Normalize before parsing.
 - Don't add network dependencies to the web layer.
 - When adding syntax or behavior, update `HelpWindow.xaml` and this file.
+- The README showreel video is a GitHub user-attachment (not stored in the repo). Don't commit large media files.
 
 ## Skills/tools that help
 
