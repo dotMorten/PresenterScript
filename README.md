@@ -1,4 +1,4 @@
-# PresenterScript
+# <img src="docs/logo.svg" width="40" alt="" align="top"> PresenterScript
 
 A simple WinUI 3 app for presenting live-coding talks from a Markdown script, shown on a secondary monitor the audience doesn't see.
 

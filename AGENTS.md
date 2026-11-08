@@ -36,6 +36,7 @@ AGENTS.md, README.md, LICENSE   Repo docs (MIT)
 PresenterScript.slnx            Solution (ARM64/x64/x86 only)
 global.json                     SDK pin
 docs/sample-talk.md             Complete example script (used in the README showreel; keep it working)
+docs/logo.svg                   App logo; source of every icon in src\PresenterScript\Assets
 src/PresenterScript/
   App.xaml(.cs)                 Startup; unhandled exceptions are appended to LocalState\crash.log
   MainWindow.xaml(.cs)          Hosts MainPage; PersistenceId "MainWindow"; OnClosing -> ViewModel.PersistScratch()
@@ -102,6 +103,7 @@ dotnet build src\PresenterScript\PresenterScript.csproj -p:Platform=ARM64 -p:Bas
 - Don't add network dependencies to the web layer.
 - When adding syntax or behavior, update `HelpWindow.xaml` and this file.
 - The README showreel video is a GitHub user-attachment (not stored in the repo). Don't commit large media files.
+- Icons (tiles, taskbar, `AppIcon.ico` used by the title bar) are generated from `docs/logo.svg`; don't edit the PNGs by hand. Regenerate with `cd src\PresenterScript; winapp manifest update-assets ..\..\docs\logo.svg --manifest .\Package.appxmanifest`. The csproj includes `Assets\*.png`.
 
 ## Skills/tools that help
 
