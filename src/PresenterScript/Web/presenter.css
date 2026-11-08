@@ -1,0 +1,195 @@
+:root {
+    color-scheme: light dark;
+    --fg: #1f1f1f;
+    --bg: #ffffff;
+    --muted: #6b6b6b;
+    --accent: #005fb8;
+    --current-bg: rgba(0, 95, 184, 0.08);
+    --current-border: rgba(0, 95, 184, 0.55);
+    --code-bg: #f4f4f4;
+    --code-border: #dcdcdc;
+    --code-hover: #e9f1fb;
+    --copied: #0f7b0f;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --fg: #e6e6e6;
+        --bg: #1c1c1c;
+        --muted: #9a9a9a;
+        --accent: #60cdff;
+        --current-bg: rgba(96, 205, 255, 0.10);
+        --current-border: rgba(96, 205, 255, 0.6);
+        --code-bg: #262626;
+        --code-border: #3a3a3a;
+        --code-hover: #1f2d38;
+        --copied: #6ccb5f;
+    }
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: "Segoe UI Variable Text", "Segoe UI", sans-serif;
+    line-height: 1.5;
+}
+
+body.edit { font-size: 15px; }
+body.present { font-size: 22px; }
+
+#content {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 24px 32px 50vh 32px;
+}
+
+/* ---------- Sections ---------- */
+.sect {
+    position: relative;
+    padding: 4px 16px;
+    margin: 0 -16px;
+    border-radius: 8px;
+    border-left: 4px solid transparent;
+    transition: background-color 200ms ease, border-color 200ms ease;
+    cursor: default;
+}
+
+.sect.empty { padding: 0; margin: 0; border: none; }
+
+.sect.current {
+    background: var(--current-bg);
+    border-left-color: var(--current-border);
+    font-size: 1.25em;
+}
+
+.sect > :first-child { margin-top: 8px; }
+.sect > :last-child { margin-bottom: 8px; }
+
+/* ---------- Snippets ---------- */
+.snippet {
+    position: relative;
+    margin: 12px 0;
+    background: var(--code-bg);
+    border: 1px solid var(--code-border);
+    border-radius: 8px;
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 120ms ease, border-color 120ms ease;
+}
+
+.snippet:hover {
+    background: var(--code-hover);
+    border-color: var(--accent);
+}
+
+.snippet:active { transform: scale(0.995); }
+
+.snippet pre {
+    margin: 0;
+    padding: 16px 150px 16px 20px;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    font-family: "Cascadia Code", "Cascadia Mono", Consolas, monospace;
+    font-size: 0.85em;
+    line-height: 1.45;
+}
+
+.snippet .copy-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    padding: 6px 14px;
+    border-radius: 6px;
+    background: var(--accent);
+    color: var(--bg);
+    font-size: 0.8em;
+    font-weight: 600;
+    opacity: 0.85;
+}
+
+.snippet:hover .copy-badge { opacity: 1; }
+
+.snippet.copied { border-color: var(--copied); }
+.snippet.copied .copy-badge { background: var(--copied); }
+.snippet.queued { border-color: var(--accent); box-shadow: 0 0 0 2px var(--current-border); }
+.snippet.queued .copy-badge { background: var(--accent); }
+.snippet.flash .copy-badge { background: var(--copied); }
+.snippet.flash .copy-badge::after { content: " \2713"; }
+
+/* ---------- Markdown basics ---------- */
+a { color: var(--accent); }
+code { font-family: "Cascadia Code", "Cascadia Mono", Consolas, monospace; font-size: 0.9em; }
+:not(pre) > code { background: var(--code-bg); padding: 1px 5px; border-radius: 4px; }
+img { max-width: 100%; }
+hr.sep { border: none; border-top: 1px dashed var(--code-border); margin: 20px 0; }
+
+/* Time target badge for sections with an @mm[:ss] tag */
+.target-badge {
+    position: absolute;
+    top: 6px;
+    right: 10px;
+    padding: 1px 10px;
+    font-size: 13px;
+    color: var(--muted);
+    border: 1px solid var(--code-border);
+    border-radius: 999px;
+    background: var(--bg);
+}
+.sect[data-target] { padding-right: 110px; }
+.talk-end {
+    margin: 24px 0 8px;
+    padding-top: 10px;
+    border-top: 1px dashed var(--code-border);
+    text-align: center;
+    font-size: 13px;
+    color: var(--muted);
+}
+
+/* Setup checklist (task list at the top of the document) */
+.checklist {
+    margin: 0 0 24px;
+    padding: 4px 20px 12px;
+    border: 1px solid var(--code-border);
+    border-radius: 8px;
+    background: var(--code-bg);
+    transition: opacity 200ms ease;
+}
+.checklist.complete { opacity: 0.6; }
+.checklist > h1, .checklist > h2, .checklist > h3, .checklist > h4 {
+    display: flex;
+    align-items: baseline;
+    gap: 0.4em;
+    margin: 10px 0 6px;
+    font-size: 1.1em;
+}
+.checklist-count { margin-left: auto; font-size: 0.8em; font-weight: normal; color: var(--muted); }
+.checklist-toggle { display: none; color: var(--muted); transition: transform 150ms ease; }
+body.present .checklist-toggle { display: inline-block; }
+body.present .checklist > :is(h1, h2, h3, h4) { cursor: pointer; user-select: none; }
+body.present .checklist.collapsed { padding-bottom: 4px; }
+body.present .checklist.collapsed > :not(h1, h2, h3, h4) { display: none; }
+body.present .checklist.collapsed .checklist-toggle { transform: rotate(-90deg); }
+.checklist ul { list-style: none; margin: 0; padding-left: 0; }
+.checklist ul ul { padding-left: 1.6em; }
+.checklist li.task-list-item {
+    padding: 4px 6px;
+    border-radius: 6px;
+    cursor: pointer;
+    user-select: none;
+}
+.checklist li.task-list-item:hover { background: var(--code-hover); }
+.checklist li.done { color: var(--muted); text-decoration: line-through; }
+.checklist input[type="checkbox"] {
+    width: 1.1em;
+    height: 1.1em;
+    margin: 0 0.6em 0 0;
+    vertical-align: -0.15em;
+    accent-color: var(--copied);
+    cursor: pointer;
+}
+blockquote { margin: 8px 0; padding: 0 16px; border-left: 4px solid var(--code-border); color: var(--muted); }
+table { border-collapse: collapse; }
+th, td { border: 1px solid var(--code-border); padding: 4px 10px; }
+h1, h2, h3 { line-height: 1.25; }
