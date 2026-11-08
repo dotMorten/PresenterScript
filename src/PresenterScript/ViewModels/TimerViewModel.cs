@@ -219,6 +219,10 @@ public partial class TimerViewModel : ObservableObject
     /// </summary>
     private TimeSpan? ElapsedAt(DateTime at)
     {
+        if (Mode == TimerMode.Off)
+        {
+            return null;
+        }
         // The end time and talk length fully define the timeline, so this works before presenter mode starts the clock.
         if (Mode == TimerMode.CountDown && EndTime is TimeSpan end && _talkLength is TimeSpan length)
         {

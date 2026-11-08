@@ -74,6 +74,7 @@ src/PresenterScript/
   - On pace while the current section's target ≤ elapsed ≤ the next target (or talk length).
   - Ahead = target − elapsed, before that window.
   - Behind = elapsed − next target, after it.
+  - No pace (pill hidden) when the timer is Off.
 - **Scratch/session**:
   - Edits are saved atomically to scratch (`.tmp` then move).
   - On launch: LastDocument, then the most recent file, then the starter text.
