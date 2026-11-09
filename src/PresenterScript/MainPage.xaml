@@ -16,6 +16,7 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
@@ -111,8 +112,16 @@
                 Grid.Column="1"
                 HorizontalAlignment="Left"
                 DefaultLabelPosition="Right"
-                IsDynamicOverflowEnabled="False"
-                OverflowButtonVisibility="Collapsed">
+                IsDynamicOverflowEnabled="True"
+                OverflowButtonVisibility="Auto">
+                <CommandBar.SecondaryCommands>
+                    <AppBarButton
+                        x:Name="PresentationSettingsButton"
+                        AutomationProperties.Name="Presenter settings"
+                        Click="OnPresentationSettingsClick"
+                        Icon="Setting"
+                        Label="Presenter settings" />
+                </CommandBar.SecondaryCommands>
                 <AppBarButton
                     AutomationProperties.Name="New"
                     Command="{x:Bind ViewModel.NewCommand}"
@@ -217,15 +226,16 @@
                         <FontIcon Glyph="&#xE72B;" />
                     </AppBarButton.Icon>
                 </AppBarButton>
-                <AppBarToggleButton
-                    AutomationProperties.Name="Auto-copy next snippet"
-                    IsChecked="{x:Bind ViewModel.AutoCopyNext, Mode=TwoWay}"
-                    Label="Auto-copy next"
-                    ToolTipService.ToolTip="After a snippet is pasted somewhere, put the next snippet on the clipboard">
-                    <AppBarToggleButton.Icon>
-                        <FontIcon Glyph="&#xE8C8;" />
-                    </AppBarToggleButton.Icon>
-                </AppBarToggleButton>
+                <AppBarElementContainer VerticalContentAlignment="Center">
+                    <ToggleSwitch
+                        x:Name="AutoCopyNextToggle"
+                        Margin="8,0"
+                        AutomationProperties.Name="Auto-copy next snippet"
+                        IsOn="{x:Bind ViewModel.AutoCopyNext, Mode=TwoWay}"
+                        OffContent="Auto-copy next"
+                        OnContent="Auto-copy next"
+                        ToolTipService.ToolTip="After a snippet is pasted somewhere, put the next snippet on the clipboard" />
+                </AppBarElementContainer>
                 <AppBarElementContainer VerticalContentAlignment="Center">
                     <TextBlock
                         x:Name="SectionStatusText"
@@ -237,7 +247,15 @@
             </CommandBar>
         </Grid>
 
-        <Grid Grid.Row="1">
+        <InfoBar
+            x:Name="PresentationErrorBar"
+            Grid.Row="1"
+            IsClosable="True"
+            IsOpen="False"
+            Severity="Warning"
+            Title="Presenter setting could not be applied" />
+
+        <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition x:Name="EditorColumn" Width="*" />
                 <ColumnDefinition Width="*" />

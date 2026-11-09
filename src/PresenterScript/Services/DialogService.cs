@@ -1,5 +1,6 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using PresenterScript.ViewModels;
 
 namespace PresenterScript.Services;
 
@@ -12,14 +13,42 @@ public enum SaveChoice
 
 public interface IDialogService
 {
+    bool IsOpen { get; }
     Task<SaveChoice> ConfirmSaveChangesAsync(string fileName);
     Task<bool> ConfirmAsync(string title, string message, string confirmText);
     Task ShowErrorAsync(string title, string message);
+    Task ShowPresentationSettingsAsync(PresentationSettingsViewModel settings);
 }
 
 public sealed class DialogService(Func<XamlRoot> xamlRoot) : IDialogService
 {
     private bool _isOpen;
+
+    public bool IsOpen => _isOpen;
+
+    public async Task ShowPresentationSettingsAsync(PresentationSettingsViewModel settings)
+    {
+        if (_isOpen)
+        {
+            return;
+        }
+
+        var dialog = new PresentationSettingsDialog(settings) { XamlRoot = xamlRoot() };
+        _isOpen = true;
+        try
+        {
+            dialog.StartMonitoring();
+            if (await dialog.ShowAsync() == ContentDialogResult.Primary)
+            {
+                settings.SaveFrom(dialog.Draft);
+            }
+        }
+        finally
+        {
+            _isOpen = false;
+            dialog.StopMonitoring();
+        }
+    }
 
     public async Task<bool> ConfirmAsync(string title, string message, string confirmText)
     {

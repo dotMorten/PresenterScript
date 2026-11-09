@@ -43,6 +43,7 @@ public partial class TimerViewModel : ObservableObject
     private IReadOnlyDictionary<int, TimeSpan> _targets = new Dictionary<int, TimeSpan>();
     private TimeSpan? _talkLength;
     private int _currentSection;
+    private bool _hasPresented;
 
     public TimerViewModel()
     {
@@ -134,9 +135,14 @@ public partial class TimerViewModel : ObservableObject
 
     public void EnsureStarted(DateTime now)
     {
+        _hasPresented = true;
         if (StartedAt is null)
         {
             Start(now);
+        }
+        else
+        {
+            Update(now);
         }
     }
 
@@ -219,11 +225,11 @@ public partial class TimerViewModel : ObservableObject
     /// </summary>
     private TimeSpan? ElapsedAt(DateTime at)
     {
-        if (Mode == TimerMode.Off)
+        if (Mode == TimerMode.Off || (Mode == TimerMode.CountDown && !_hasPresented))
         {
             return null;
         }
-        // The end time and talk length fully define the timeline, so this works before presenter mode starts the clock.
+        // Once presenting has begun, the end time and talk length fully define the timeline.
         if (Mode == TimerMode.CountDown && EndTime is TimeSpan end && _talkLength is TimeSpan length)
         {
             return length - (at.Date + end - at);
@@ -249,6 +255,10 @@ public partial class TimerViewModel : ObservableObject
     {
         switch (Mode)
         {
+            case TimerMode.CountDown when EndTime is not null && !_hasPresented:
+                DisplayText = "Ready";
+                State = TimerState.Normal;
+                break;
             case TimerMode.CountDown when EndTime is TimeSpan end:
                 var remaining = now.Date + end - now;
                 // Round up so "0:01" is shown until the last second has fully elapsed.

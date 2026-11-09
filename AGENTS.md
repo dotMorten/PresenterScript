@@ -14,6 +14,7 @@ PresenterScript is a small WinUI 3 desktop app for presenting **live-coding talk
 - A task list at the top of the document becomes a **setup checklist**, rendered outside the sections and collapsed in presenter mode.
 - **Unsaved edits are never lost**. They are kept in a per-document scratch file and restored on next launch, so closing doesn't prompt. New/Open prompt when the document is dirty. Revert discards edits.
 - Recent files, window placement (WinUIEx `PersistenceId`), and an F1 Help window that documents all special syntax.
+- **Presenter settings** in the toolbar overflow menu: keep system/displays awake (default on), automatic full screen (default off), read-only notification status, and Windows notification/date-time settings shortcuts. Saved preferences apply on the next entry into presenter mode.
 
 The user-facing syntax reference is `src\PresenterScript\HelpWindow.xaml`. **Keep it in sync** whenever the Markdown dialect or behavior changes.
 
@@ -43,10 +44,12 @@ src/PresenterScript/
   MainPage.xaml(.cs)            CommandBar, timer bar, editor + WebView2 preview, host<->JS messaging,
                                 debounced render (Text change) and scratch save (1 s), keyboard accelerators
   HelpWindow.xaml(.cs)          Syntax/help reference (F1). Update it when behavior changes
+  PresentationSettingsDialog.xaml(.cs)  Presenter preferences, notification status and manual Windows settings links
   ViewModels/
     MainViewModel.cs            Document state (Text, FilePath, IsDirty, IsPresenting, CurrentSection),
                                 New/Open/Save/SaveAs/Revert, StarterText, session restore, scratch integration
     TimerViewModel.cs           Timer modes, section targets, interpolation, continuous pace model, pill colors
+    PresentationSettingsViewModel.cs  Persisted preferences and dialog drafts
   Services/
     MarkdownRenderer.cs         Markdig -> HTML with sections, snippets, @targets, setup checklist (pure, static)
     SnippetClipboard.cs         Delay-rendered clipboard (paste detection), WM_CLIPBOARDUPDATE replace detection
@@ -54,6 +57,7 @@ src/PresenterScript/
     RecentFilesService.cs       MRU in LocalSettings
     FileDialogService.cs        Open/save pickers
     DialogService.cs            Save/Don't save/Cancel, confirm and error ContentDialogs
+    PresentationSessionService.cs  Scoped native system/display power requests
   Web/
     index.html, presenter.css, presenter.js   Static shell; content swapped via PostWebMessage
 ```
@@ -75,10 +79,17 @@ src/PresenterScript/
   - Ahead = target − elapsed, before that window.
   - Behind = elapsed − next target, after it.
   - No pace (pill hidden) when the timer is Off.
+  - Count-down stays at "Ready" with no pace until the first entry into presenter mode, even if a start time was edited or the talk clock was manually restarted. Once started, the fixed end-time countdown continues in edit mode.
 - **Scratch/session**:
   - Edits are saved atomically to scratch (`.tmp` then move).
   - On launch: LastDocument, then the most recent file, then the starter text.
   - Saving clears the scratch. The user's file on disk is only written by Save/Save as.
+- **Presentation effects**:
+  - All entry/exit paths converge on `MainPage.ApplyMode`. Keep power requests active while presenting even if another app has focus or the window is minimized; release them on exit and graceful close.
+  - Automatic full screen restores the original presenter only while the app owns the change. F11/manual presenter changes relinquish restoration ownership; already-full-screen windows are left alone.
+  - Preference changes during a presentation apply next time. Dialogs share `DialogService`'s open guard; mode/full-screen accelerators must not run while a dialog is open.
+  - Notification status uses runtime-guarded `ToastNotificationManagerForUser.NotificationMode`. DND and taskbar clock/date are manual Windows settings, not automatic effects. Do not add undocumented shell/registry controls or restricted Focus-session APIs.
+  - Errors appear in the dialog or presentation warning bar and are appended to `crash.log`; one failed effect must not prevent cleanup of the others.
 
 ## Build, run, verify
 

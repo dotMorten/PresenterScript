@@ -98,6 +98,8 @@ public partial class MainViewModel : ObservableObject
 
     public TimerViewModel Timer { get; } = new();
 
+    public PresentationSettingsViewModel PresentationSettings { get; } = PresentationSettingsViewModel.Load();
+
     partial void OnIsPresentingChanged(bool value)
     {
         if (value)

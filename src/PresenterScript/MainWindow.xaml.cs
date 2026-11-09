@@ -41,7 +41,16 @@ public sealed partial class MainWindow : Window
         AppTitleBar.Title = Title;
     }
 
-    private void OnClosing(AppWindow sender, AppWindowClosingEventArgs args) =>
-        // Unsaved edits are kept in the scratch space and restored on the next launch, so there's nothing to ask.
-        Page.ViewModel.PersistScratch();
+    private void OnClosing(AppWindow sender, AppWindowClosingEventArgs args)
+    {
+        try
+        {
+            // Unsaved edits are kept in scratch space, so there's nothing to ask.
+            Page.ViewModel.PersistScratch();
+        }
+        finally
+        {
+            Page.StopPresentationSession();
+        }
+    }
 }

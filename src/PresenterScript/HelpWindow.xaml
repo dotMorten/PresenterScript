@@ -85,7 +85,7 @@ Switch to the GitHub Todo app.</TextBlock>
                     You don't need to tag every section. Untagged sections get an estimated target spread evenly between the tagged sections around them: with @10 on one section and @20 three sections later, the two in between are expected at about 13:20 and 16:40. The first section counts as 0:00, and the talk length (below) marks the end, so sections after the last tag are estimated too. Estimated targets aren't shown; they only feed the pace indicator.
                 </TextBlock>
                 <TextBlock Margin="0,8,0,0" Style="{StaticResource HelpBody}">
-                    While presenting, a pill next to the timer shows whether you're ahead of or behind schedule right now. The current section is on schedule from its target until the next section's target (or the end of the talk); before that you're ahead, after it you're behind, and the pill updates every second. With a count-down and a talk length the pill works even before you start presenting: 40 minutes left on a 25-minute talk while you're on the first section shows 15 minutes ahead.
+                    While presenting, a pill next to the timer shows whether you're ahead of or behind schedule right now. The current section is on schedule from its target until the next section's target (or the end of the talk); before that you're ahead, after it you're behind, and the pill updates every second. A count-down shows "Ready" and hides its pace pill until you first enter presenter mode. Once started, it continues toward the end time even if you return to editing.
                 </TextBlock>
                 <StackPanel
                     x:Name="PaceLegend"
@@ -115,6 +115,17 @@ Switch to the GitHub Todo app.</TextBlock>
 
 Welcome everyone…</TextBlock>
                 </Border>
+
+                <TextBlock Style="{StaticResource HelpHeading}" Text="Presenter settings" />
+                <TextBlock Style="{StaticResource HelpBody}">
+                    Open the toolbar's ... menu and choose Presenter settings. Keep system and displays awake is on by default: it prevents idle sleep and display timeout while presenting, including when you switch to another app. The request is released when you return to edit mode or close PresenterScript. Explicit sleep, closing the lid, power policies, and battery limits can still take precedence.
+                </TextBlock>
+                <TextBlock Margin="0,8,0,0" Style="{StaticResource HelpBody}">
+                    Enter full screen automatically is off by default. When enabled, entering presenter mode also enters full screen and leaving restores the previous window mode. If you change the mode yourself with F11, your choice is preserved instead. Save applies these options the next time you enter presenter mode; Cancel discards changes.
+                </TextBlock>
+                <TextBlock Margin="0,8,0,0" Style="{StaticResource HelpBody}">
+                    The dialog shows the current Windows notification mode where supported and links to notification settings so you can turn on Do not disturb manually. Priority notifications or alarms may still appear. It also links to Date &amp; time settings, where newer Windows 11 versions let you turn off "Show time and date in the system tray" to hide the taskbar clock and date. These Windows settings are manual, apply system-wide, and are not changed or restored by PresenterScript.
+                </TextBlock>
 
                 <TextBlock Style="{StaticResource HelpHeading}" Text="Keyboard shortcuts" />
                 <Grid Margin="0,4,0,0" ColumnSpacing="24" RowSpacing="4">

@@ -42,12 +42,12 @@ public partial class App : Application
     public App()
     {
         InitializeComponent();
-        UnhandledException += (_, e) => LogCrash(e.Exception);
-        AppDomain.CurrentDomain.UnhandledException += (_, e) => LogCrash(e.ExceptionObject as Exception);
+        UnhandledException += (_, e) => LogError(e.Exception);
+        AppDomain.CurrentDomain.UnhandledException += (_, e) => LogError(e.ExceptionObject as Exception);
     }
 
-    /// <summary>Appends unhandled exceptions to crash.log in the app's local data folder.</summary>
-    private static void LogCrash(Exception? exception)
+    /// <summary>Appends exceptions to crash.log in the app's local data folder.</summary>
+    internal static void LogError(Exception? exception)
     {
         try
         {

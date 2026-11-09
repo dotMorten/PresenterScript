@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentDialog
+    x:Class="PresenterScript.PresentationSettingsDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Presenter settings"
+    CloseButtonText="Cancel"
+    DefaultButton="Primary"
+    PrimaryButtonText="Save">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel MaxWidth="440" Spacing="16">
+            <TextBlock Text="Saved options apply the next time you enter presenter mode." TextWrapping="Wrap" />
+            <ToggleSwitch
+                x:Name="KeepAwakeToggle"
+                Header="Keep system and displays awake"
+                IsOn="{x:Bind Draft.KeepAwake, Mode=TwoWay}" />
+            <TextBlock
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                Text="Prevents idle sleep and display timeout while presenting, even when working in another app. Released when you exit presenter mode."
+                TextWrapping="Wrap" />
+            <ToggleSwitch
+                x:Name="AutoFullScreenToggle"
+                Header="Enter full screen automatically"
+                IsOn="{x:Bind Draft.AutoFullScreen, Mode=TwoWay}" />
+            <TextBlock
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                Text="Restores the previous window mode on exit unless you change it yourself with F11."
+                TextWrapping="Wrap" />
+            <TextBlock FontWeight="SemiBold" Text="Windows notifications" />
+            <TextBlock x:Name="NotificationStatusText" TextWrapping="Wrap" />
+            <HyperlinkButton
+                x:Name="NotificationSettingsLink"
+                Padding="0"
+                HorizontalAlignment="Left"
+                Click="OnNotificationSettingsClick"
+                Content="Open notification settings" />
+            <TextBlock FontWeight="SemiBold" Text="Taskbar clock and date" />
+            <HyperlinkButton
+                x:Name="DateTimeSettingsLink"
+                Padding="0"
+                HorizontalAlignment="Left"
+                Click="OnDateTimeSettingsClick"
+                Content="Open Date &amp; time settings" />
+            <TextBlock
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                Text="In Windows 11, turn off 'Show time and date in the system tray' if available. Notification and clock settings are changed manually in Windows and are not restored by PresenterScript."
+                TextWrapping="Wrap" />
+            <InfoBar
+                x:Name="SettingsErrorBar"
+                IsClosable="True"
+                IsOpen="False"
+                Severity="Error"
+                Title="Could not open Windows Settings" />
+        </StackPanel>
+    </ScrollViewer>
+</ContentDialog>

@@ -23,6 +23,11 @@ public sealed partial class MainPage : Page
     private readonly DispatcherQueueTimer _scratchTimer;
     private readonly DispatcherQueueTimer _clockTimer;
     private readonly SnippetClipboard _clipboard;
+    private readonly DialogService _dialogs;
+    private readonly PresentationSessionService _presentationSession = new();
+    private bool _presentationSessionActive;
+    private AppWindowPresenter? _originalPresenter;
+    private AppWindowPresenter? _automaticFullScreenPresenter;
     private bool _webReady;
     private string? _mappedFolder;
     private IReadOnlyList<string> _snippets = [];
@@ -34,9 +39,10 @@ public sealed partial class MainPage : Page
 
     public MainPage()
     {
+        _dialogs = new DialogService(() => XamlRoot);
         ViewModel = new MainViewModel(
             new FileDialogService(() => App.Window.AppWindow.Id),
-            new DialogService(() => XamlRoot),
+            _dialogs,
             new RecentFilesService(),
             new ScratchService());
 
@@ -74,6 +80,7 @@ public sealed partial class MainPage : Page
     private async void OnLoaded(object sender, RoutedEventArgs e)
     {
         Loaded -= OnLoaded;
+        App.Window.AppWindow.Changed += OnAppWindowChanged;
         _clipboard.Attach(App.Window);
         await ViewModel.RestoreSessionAsync();
         try
@@ -82,7 +89,7 @@ public sealed partial class MainPage : Page
         }
         catch (Exception ex)
         {
-            await new DialogService(() => XamlRoot).ShowErrorAsync("WebView2 is not available", ex.Message);
+            await _dialogs.ShowErrorAsync("WebView2 is not available", ex.Message);
             return;
         }
 
@@ -139,6 +146,14 @@ public sealed partial class MainPage : Page
     private void ApplyMode()
     {
         bool presenting = ViewModel.IsPresenting;
+        if (presenting)
+        {
+            StartPresentationSession();
+        }
+        else
+        {
+            StopPresentationSession();
+        }
         EditorColumn.Width = presenting ? new GridLength(0) : new GridLength(1, GridUnitType.Star);
         PreviewHost.Margin = presenting ? new Thickness(0) : new Thickness(4, 0, 8, 8);
         PreviewHost.BorderThickness = presenting ? new Thickness(0) : new Thickness(1);
@@ -160,6 +175,108 @@ public sealed partial class MainPage : Page
         }
 
         PostMessage(new JsonObject { ["type"] = "mode", ["mode"] = presenting ? "present" : "edit" });
+    }
+
+    private void StartPresentationSession()
+    {
+        if (_presentationSessionActive)
+        {
+            return;
+        }
+        _presentationSessionActive = true;
+        PresentationErrorBar.IsOpen = false;
+        PresentationErrorBar.Message = string.Empty;
+        if (ViewModel.PresentationSettings.KeepAwake)
+        {
+            try
+            {
+                _presentationSession.Start();
+            }
+            catch (Exception ex)
+            {
+                ShowPresentationError("Keep-awake could not be enabled.", ex);
+            }
+        }
+
+        var appWindow = App.Window.AppWindow;
+        if (ViewModel.PresentationSettings.AutoFullScreen &&
+            appWindow.Presenter.Kind != AppWindowPresenterKind.FullScreen)
+        {
+            try
+            {
+                _originalPresenter = appWindow.Presenter;
+                appWindow.SetPresenter(AppWindowPresenterKind.FullScreen);
+                _automaticFullScreenPresenter = appWindow.Presenter;
+            }
+            catch (Exception ex)
+            {
+                _originalPresenter = null;
+                ShowPresentationError("Automatic full screen could not be enabled.", ex);
+            }
+        }
+    }
+
+    public void StopPresentationSession()
+    {
+        if (!_presentationSessionActive)
+        {
+            return;
+        }
+        _presentationSessionActive = false;
+        try
+        {
+            _presentationSession.Stop();
+        }
+        catch (Exception ex)
+        {
+            ShowPresentationError("Keep-awake could not be released normally.", ex);
+        }
+
+        var original = _originalPresenter;
+        var automatic = _automaticFullScreenPresenter;
+        _originalPresenter = null;
+        _automaticFullScreenPresenter = null;
+        if (original is not null && automatic is not null && App.Window.AppWindow.Presenter.Equals(automatic))
+        {
+            try
+            {
+                App.Window.AppWindow.SetPresenter(original);
+            }
+            catch (Exception ex)
+            {
+                ShowPresentationError("The previous window mode could not be restored.", ex);
+            }
+        }
+    }
+
+    private void OnAppWindowChanged(AppWindow sender, AppWindowChangedEventArgs args)
+    {
+        if (args.DidPresenterChange && _automaticFullScreenPresenter is not null &&
+            !sender.Presenter.Equals(_automaticFullScreenPresenter))
+        {
+            _originalPresenter = null;
+            _automaticFullScreenPresenter = null;
+        }
+    }
+
+    private void ShowPresentationError(string message, Exception exception)
+    {
+        App.LogError(new InvalidOperationException(message, exception));
+        PresentationErrorBar.Message += $"{message} {exception.Message}{Environment.NewLine}";
+        PresentationErrorBar.IsOpen = true;
+    }
+
+    private async void OnPresentationSettingsClick(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            await _dialogs.ShowPresentationSettingsAsync(ViewModel.PresentationSettings);
+        }
+        catch (Exception ex)
+        {
+            App.LogError(ex);
+            await _dialogs.ShowErrorAsync("Presenter settings could not be saved", ex.Message);
+        }
     }
 
     private void RenderPreview()
@@ -274,6 +391,10 @@ public sealed partial class MainPage : Page
 
     private void HandleForwardedKey(string? key, bool ctrl, bool shift)
     {
+        if (_dialogs.IsOpen)
+        {
+            return;
+        }
         if (ctrl)
         {
             var command = key?.ToLowerInvariant() switch
@@ -322,8 +443,10 @@ public sealed partial class MainPage : Page
         }
     }
 
-    private static void ToggleFullScreen()
+    private void ToggleFullScreen()
     {
+        _originalPresenter = null;
+        _automaticFullScreenPresenter = null;
         var appWindow = App.Window.AppWindow;
         appWindow.SetPresenter(appWindow.Presenter.Kind == AppWindowPresenterKind.FullScreen
             ? AppWindowPresenterKind.Overlapped
@@ -333,12 +456,15 @@ public sealed partial class MainPage : Page
     private void OnTogglePresentAccelerator(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
     {
         args.Handled = true;
-        ViewModel.TogglePresentCommand.Execute(null);
+        if (!_dialogs.IsOpen)
+        {
+            ViewModel.TogglePresentCommand.Execute(null);
+        }
     }
 
     private void OnEscapeAccelerator(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
     {
-        if (ViewModel.IsPresenting)
+        if (ViewModel.IsPresenting && !_dialogs.IsOpen)
         {
             args.Handled = true;
             ViewModel.IsPresenting = false;
@@ -348,7 +474,10 @@ public sealed partial class MainPage : Page
     private void OnFullScreenAccelerator(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
     {
         args.Handled = true;
-        ToggleFullScreen();
+        if (!_dialogs.IsOpen)
+        {
+            ToggleFullScreen();
+        }
     }
 
     private void OnEditorPreviewKeyDown(object sender, KeyRoutedEventArgs e)
